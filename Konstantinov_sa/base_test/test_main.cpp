@@ -1,10 +1,5 @@
 #include <gtest.h>
+//#include "postfix.h"
+#include "alivev.h"
+#include "test_main.h"
 
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  RUN_ALL_TESTS();
-
-
-  system("pause");
-}

@@ -80,10 +80,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="alivev.cpp" />
     <ClCompile Include="postfix.cpp" />
     <ClCompile Include="sample_postfix.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="alivev.h" />
     <ClInclude Include="postfix.h" />
     <ClInclude Include="stack.h" />
   </ItemGroup>
