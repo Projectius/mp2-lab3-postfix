@@ -27,4 +27,8 @@
 *.exe
 *.out
 *.app
+
+# VS stuff that blocks commits when VS is open
+*.opendb
+*.opensdf
 /Студенты/

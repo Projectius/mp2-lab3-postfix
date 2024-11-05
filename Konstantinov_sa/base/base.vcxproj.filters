@@ -18,9 +18,6 @@
     <ClCompile Include="sample_postfix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="postfix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="alivev.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

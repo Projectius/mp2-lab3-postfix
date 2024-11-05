@@ -81,7 +81,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="alivev.cpp" />
-    <ClCompile Include="postfix.cpp" />
     <ClCompile Include="sample_postfix.cpp" />
   </ItemGroup>
   <ItemGroup>

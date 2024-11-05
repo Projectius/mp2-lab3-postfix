@@ -74,7 +74,7 @@ public:
 };
 
 
-//template <typename T>
+template <typename T>
 class LexBase
 {
     unordered_map<string, Lexeme*> map;
@@ -88,7 +88,6 @@ public:
         }
     }
 
-    template <typename T>
     Lexeme* addVar(string name)
     {
         auto it = map.find(name);
@@ -127,137 +126,113 @@ public:
     }
 };
 
-
+template<typename T>
 class TPostfix
 {
-	LexBase base;
+	LexBase<T> base;
 	string infix;
 	vector<Lexeme*> postfix;
 	TStack<Lexeme*> opStack;
-	void parseToPostfix();
-public:
-	//TPostfix(string what_);// { cout << "WHATTTTTTTTTTTTT IN HHHH" << endl; };
-	TPostfix(string infix_, bool importBasicOperators = 1);
-	string GetInfix() { return infix; }
-	string GetPostfix();
-	string ToPostfix();
-	double Calculate(); // Ввод переменных, вычисление по постфиксной форме
-};
 
-TPostfix::TPostfix(string infix_, bool importBasicOperators)
-{
-	infix = infix_;
-	if (importBasicOperators) {
-        base.addOperator("+", 2, 0, [](double a, double b) { return a + b; });
-        base.addOperator("-", 2, 0, [](double a, double b) { return a - b; });
-        base.addOperator("*", 2, 1, [](double a, double b) { return a * b; });
-        base.addOperator("/", 2, 1, [](double a, double b) { return a / b; });
-		
-		base.addLexeme(Lexeme("(", parOpen));
-		base.addLexeme(Lexeme(")", parClose));
+    void parseToPostfix() {
+        istringstream iss(infix);
+        string token;
+        int t = 0;
 
-	}
-	cout << "POSTFIX START" << endl;
-	parseToPostfix();
-	cout << "RESULT:" << endl;
-	cout << GetPostfix() << endl;
-	
-}
+        while (iss >> token) {
+            Lexeme* lex = base.getLexeme(token);
+            cout << "Got token " << token << endl;
 
-void TPostfix::parseToPostfix() {
-    istringstream iss(infix);
-    string token;
-    int t = 0;
+            if (lex == nullptr) {
+                // Если лексема не найдена, добавляем как новую переменную
+                postfix.push_back(base.addVar(token));
+                cout << "New var " << endl;
+            }
+            else {
+                // Вывод информации для отладки
+                cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
+                LexemeType type = lex->getType();
 
-    while (iss >> token) {
-        Lexeme* lex = base.getLexeme(token);
-        cout << "Got token " << token << endl;
-
-        if (lex == nullptr) {
-            // Если лексема не найдена, добавляем как новую переменную
-            postfix.push_back(base.addVar<double>(token));
-            cout << "New var " << endl;
-        } else {
-            // Вывод информации для отладки
-            cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
-            LexemeType type = lex->getType();
-
-            if (type == LexemeType::var) {
-                // Если лексема — переменная, добавляем её в постфиксное выражение
-                postfix.push_back(lex);
-            } 
-            else if (type == op) {
-                // Если это оператор, обрабатываем приоритеты
-                while (!opStack.empty() && opStack.get_top()->getType() == op && 
-                       opStack.get_top()->getPriority() >= lex->getPriority()) {
-                    // Перемещаем оператор с более высоким или равным приоритетом в постфикс
-                    postfix.push_back(opStack.get_top());
-                    opStack.pop();
+                if (type == LexemeType::var) {
+                    // Если лексема — переменная, добавляем её в постфиксное выражение
+                    postfix.push_back(lex);
                 }
-                opStack.push(lex); // Добавляем текущий оператор в стек
-            } 
-            else if (type == parOpen) {
-                // Если открывающая скобка, добавляем её в стек операторов
-                opStack.push(lex);
-            } 
-            else if (type == parClose) {
-                // Если закрывающая скобка, выталкиваем операторы в постфикс до открывающей скобки
-                while (!opStack.empty() && opStack.get_top()->getType() != parOpen) {
-                    postfix.push_back(opStack.get_top());
-                    opStack.pop();
+                else if (type == op) {
+                    // Если это оператор, обрабатываем приоритеты
+                    while (!opStack.empty() && opStack.get_top()->getType() == op &&
+                        opStack.get_top()->getPriority() >= lex->getPriority()) {
+                        // Перемещаем оператор с более высоким или равным приоритетом в постфикс
+                        postfix.push_back(opStack.get_top());
+                        opStack.pop();
+                    }
+                    opStack.push(lex); // Добавляем текущий оператор в стек
                 }
-                if (!opStack.empty()) {
-                    opStack.pop(); // Убираем открывающую скобку из стека
+                else if (type == parOpen) {
+                    // Если открывающая скобка, добавляем её в стек операторов
+                    opStack.push(lex);
+                }
+                else if (type == parClose) {
+                    // Если закрывающая скобка, выталкиваем операторы в постфикс до открывающей скобки
+                    while (!opStack.empty() && opStack.get_top()->getType() != parOpen) {
+                        postfix.push_back(opStack.get_top());
+                        opStack.pop();
+                    }
+                    if (!opStack.empty()) {
+                        opStack.pop(); // Убираем открывающую скобку из стека
+                    }
                 }
             }
+
+            // Вывод текущего состояния для отладки
+            cout << "It was token " << t << endl;
+            cout << "Stack size: " << opStack.get_size() << endl;
+            cout << "Postfix size: " << postfix.size() << endl;
+            if (!postfix.empty())
+                cout << "Last in postfix: " << postfix.back() << endl;
+            ++t;
         }
 
-        // Вывод текущего состояния для отладки
-        cout << "It was token " << t << endl;
-        cout << "Stack size: " << opStack.get_size() << endl;
-        cout << "Postfix size: " << postfix.size() << endl;
-        if (!postfix.empty())
-            cout << "Last in postfix: " << postfix.back() << endl;
-        ++t;
+        // Перемещаем оставшиеся операторы в постфикс
+        while (!opStack.empty()) {
+            postfix.push_back(opStack.get_top());
+            cout << "END Popping " << *opStack.get_top() << " stack size " << endl;
+            opStack.pop();
+        }
     }
+public:
 
-    // Перемещаем оставшиеся операторы в постфикс
-    while (!opStack.empty()) {
-        postfix.push_back(opStack.get_top());
-        cout << "END Popping " << *opStack.get_top() << " stack size " << endl;
-        opStack.pop();
+    TPostfix(string infix_, bool importBasicOperators = true)
+    {
+        infix = infix_;
+        if (importBasicOperators) {
+            base.addOperator("+", 2, 0, [](T a, T b) { return a + b; });
+            base.addOperator("-", 2, 0, [](T a, T b) { return a - b; });
+            base.addOperator("*", 2, 1, [](T a, T b) { return a * b; });
+            base.addOperator("/", 2, 1, [](T a, T b) { return a / b; });
+
+            base.addLexeme(Lexeme("(", parOpen));
+            base.addLexeme(Lexeme(")", parClose));
+
+        }
+        cout << "POSTFIX START" << endl;
+        parseToPostfix();
+        cout << "RESULT:" << endl;
+        cout << GetPostfix() << endl;
+
     }
-}
-
-
-string TPostfix::GetPostfix()
-{
-	//ostringstream strpostfix;
-	//for (auto& it : postfix)
-	//{
-	//	cout << "Res " << *it << endl;
-	//	strpostfix << *it << " ";  // Добавляем лексему и пробел для разделения
-	//}
-	//return strpostfix.str(); // Возвращаем итоговую строку
-
-	string res;
-	for (int i = 0; i < postfix.size();i++) {
-		cout << "res " << postfix[i]->getName() << endl;
-		res += postfix[i]->getName();
-	}
-	return res;
-}
-
-double TPostfix::Calculate()
-{
-	return 0;
-}
-
-//TPostfix::TPostfix(string what_)
-//{
-//	cout << "WHATTTTTTTTTTTTT IN CPPPPPPPPPPP" << endl;
-//}
-
+	string GetInfix() { return infix; }
+    string GetPostfix()
+    {
+        string res;
+        for (int i = 0; i < postfix.size();i++) {
+            cout << "res " << postfix[i]->getName() << endl;
+            res += postfix[i]->getName();
+        }
+        return res;
+    }
+	string ToPostfix();
+	T Calculate(); // Ввод переменных, вычисление по постфиксной форме
+};
 
 
 
