@@ -5,7 +5,7 @@
 #include<functional>
 #include<unordered_map>
 #include <sstream>
-
+#include <memory>
 #include<iostream>
 
 using namespace std;
@@ -73,35 +73,58 @@ public:
 
 };
 
+
+//template <typename T>
 class LexBase
 {
-	unordered_map<string, Lexeme> map;
+    unordered_map<string, Lexeme*> map;
 
 public:
-	LexBase() = default;
+    LexBase() = default;
 
-	template <typename T>
-	Lexeme* addVar(string name)
-	{
-		auto it = map.find(name);
-		if (it == map.end())
-		{
-			Variable<T> lex {name};
-			addLexeme(lex);
-			return  &map[name];
-		}
-		return &it->second;
-	}
+    ~LexBase() {
+        for (auto& pair : map) {
+            delete pair.second;
+        }
+    }
 
-	Lexeme* getLexeme(string name)
-	{
-		auto it = map.find(name);
-		if (it != map.end())
-			return &map[name];
-		return nullptr;
-	}
+    template <typename T>
+    Lexeme* addVar(string name)
+    {
+        auto it = map.find(name);
+        if (it == map.end())
+        {
+            Variable<T>* nvar = new Variable<T>(name);
+            map.emplace(name, nvar);
+            cout << "ADDED VAR :" << nvar->getName() << ":" << endl;
+            return nvar;
+        }
+        return it->second;
+    }
 
-	void addLexeme(Lexeme& lex) { map.emplace(lex.getName(), move(lex)); cout << "ADDED LEX :" << lex.getName() << ":" << endl; }
+    template <typename Func>
+    Lexeme* addOperator(string name, int argCount, int priority, Func&& operation) {
+        using OperatorType = Operator<Func>;
+        OperatorType* nOp = new OperatorType(name, argCount, priority, forward<Func>(operation));
+        map.emplace(name, nOp);
+
+        cout << "ADDED OPERATOR: " << nOp->getName() << " with priority " << nOp->getPriority() << endl;
+        return nOp;
+    }
+
+    Lexeme* getLexeme(string name)
+    {
+        auto it = map.find(name);
+        if (it != map.end())
+            return it->second;
+        return nullptr;
+    }
+
+    void addLexeme(Lexeme& lex) { 
+        Lexeme* nlex = new Lexeme(lex);
+        map.emplace(lex.getName(), nlex);
+        cout << "ADDED LEX :" << lex.getName() << ":" << endl;
+    }
 };
 
 
@@ -125,14 +148,10 @@ TPostfix::TPostfix(string infix_, bool importBasicOperators)
 {
 	infix = infix_;
 	if (importBasicOperators) {
-		Operator<function<double(double, double)>> add("+", 2,0, [](double a, double b) -> double {return a + b;});
-		Operator<function<double(double, double)>> sub("-", 2, 0, [](double a, double b) -> double {return a - b;});
-		Operator<function<double(double, double)>> mul("*", 2, 1, [](double a, double b) -> double {return a * b;});
-		Operator<function<double(double, double)>> div("/", 2, 1, [](double a, double b) -> double {return a / b;});
-		base.addLexeme(add);
-		base.addLexeme(sub);
-		base.addLexeme(div);
-		base.addLexeme(mul);
+        base.addOperator("+", 2, 0, [](double a, double b) { return a + b; });
+        base.addOperator("-", 2, 0, [](double a, double b) { return a - b; });
+        base.addOperator("*", 2, 1, [](double a, double b) { return a * b; });
+        base.addOperator("/", 2, 1, [](double a, double b) { return a / b; });
 		
 		base.addLexeme(Lexeme("(", parOpen));
 		base.addLexeme(Lexeme(")", parClose));
