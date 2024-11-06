@@ -6,8 +6,8 @@ using namespace std;
 
 int main()
 {
-	//string expression;
-	//TPostfix postfix;
+	/*string expression;
+	TPostfix<int> pf(true);*/
 	//double res;
 
 	//setlocale(LC_ALL, "Russian");
@@ -19,8 +19,23 @@ int main()
 	//cout << "Постфиксная форма: " << postfix.GetPostfix() << endl;
 	//res = postfix.Calculate();
 	//cout << res << endl;
-	Alive a(4);
-	TPostfix pf("a + b");
+
+	try {
+		TPostfix<double> pf(true); //"e / ( ( a + b ) * c + d )"
+		//pf.inputInfix(" b * a ^ ( a + b )");
+		pf.inputInfix("( sin ( ( a + b ) / c ) + 2 ) ^ b");
+		pf.parseToPostfix();
+		cout << pf.GetPostfix() << endl;
+		cout << "undef " << pf.checkForUndefinedVars() << endl;
+		pf.setVariables({ {"a", 1.1415},{"b", 2.0} });
+		//pf.setVariables({ {"a", 2.0},{"b", 3.0} });
+		cout << "CALCULATED = " << pf.Calculate() << endl;
+	}
+	catch (exception& e)
+	{
+		cout << "EXC " << e.what() << endl;
+	}
 	system("pause");
+
 	return 0;
 }

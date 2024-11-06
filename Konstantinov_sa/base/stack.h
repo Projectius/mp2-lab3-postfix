@@ -44,13 +44,13 @@ public:
 		if (top >= size - 1)
 			resize(size*2 + int(size == 0));
 		pMem[++top] = ob;
-		cout << "pushed " << ob << endl;
+		//cout << "pushed " << ob << endl;
 	}
 
 	void pop() { 
 		if (top == -1)
 			throw "Pop empty stack";
-		cout << "Pop " << pMem[top] << endl;
+		//cout << "Pop " << pMem[top] << endl;
 		top--; 
 	}
 	T& get_top() { return pMem[top]; }

@@ -14,10 +14,13 @@ int main(int argc, char** argv)
 	//system("pause");
 	try {
 		TPostfix<double> pf(true); //"e / ( ( a + b ) * c + d )"
-		pf.inputInfix("a * ( a + b ) ^2");
+		//pf.inputInfix(" b * a ^ ( a + b )");
+		pf.inputInfix("( sin ( ( a + b ) / c ) + 2 ) ^ b");
 		pf.parseToPostfix();
 		cout << pf.GetPostfix() << endl;
-		pf.setVariables({ {"a", 2.0},{"b", 3.0} });
+		pf.setVariables({ {"a", 1.1415},{"b", 2.0}});
+		
+		//pf.setVariables({ {"a", 2.0},{"b", 3.0} });
 		cout << "CALCULATED = " << pf.Calculate() << endl;
 	}
 	catch (exception& e)

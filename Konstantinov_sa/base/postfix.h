@@ -24,7 +24,7 @@ public:
     Lexeme() { throw logic_error("Lexem default constructor should not be called. Invalid container usage."); } // Никогда не должен вызываться, может вызваться при неправильном использовании контейнеров и требуется для сборки
     Lexeme(string name_) :name(name_) { cout << "HELLO :" << name_ << ":" << endl; };
     Lexeme(string name_, bool defined) :name(name_), defined(defined) {};
-    explicit Lexeme(string name_, LexemeType type) :name(name_), type(type), defined(1) {}; // Только для специальных лексем, для которых важно только имя и тип - скобок
+    explicit Lexeme(string name_, LexemeType type, bool defined) :name(name_), type(type), defined(defined) { cout << "special " << name << endl; }; // Только для специальных лексем, для которых важно только имя и тип - (скобок)
     LexemeType getType() { return type; }
     virtual int getPriority() const { return -1; } // Приоритет скобок -1
     string getName() { return name; }
@@ -46,7 +46,7 @@ class Variable : public Lexeme
 {
     T value;
 public:
-    Variable(string name) : Lexeme(name, LexemeType::var) {}
+    Variable(string name) : Lexeme(name, LexemeType::var, false) {}
     void define(T& value_) { value = value_; static_cast<Lexeme>(*this).define(); }
     T& getValue() { return value; }
 };
@@ -64,7 +64,7 @@ class Operator : public Lexeme
 
 public:
     explicit Operator(string name_, int argCount_, int priority_, function<T(T, T)> operation_, Associativity associativity_ = Associativity::Left)
-        : Lexeme(name_, LexemeType::op), argCount(argCount_), priority(priority_), operation(move(operation_)), associativity(associativity_)
+        : Lexeme(name_, LexemeType::op, true), argCount(argCount_), priority(priority_), operation(move(operation_)), associativity(associativity_)
     {
         if (argCount == 1)
             priority = 255;
@@ -79,6 +79,8 @@ public:
         return operation(a, b); // Если оператор унарный, b просто игнорируется
     }
 };
+
+/////////////////////////////////////////
 
 template <typename T>
 class LexBase
@@ -137,6 +139,10 @@ public:
     }
 };
 
+
+///////////////////////////////////////
+
+
 template<typename T>
 class TPostfix
 {
@@ -156,6 +162,9 @@ public:
             base.addOperator("*", 2, 1, [](T a, T b) { return a * b; });
             base.addOperator("/", 2, 1, [](T a, T b) { return a / b; });
             base.addOperator("^2", 1, 255, [](T a, T b) { return a * a; }, Associativity::Left);
+            base.addOperator("^", 2, 3, [](T a, T b) {return pow(a, b);}, Associativity::Right);
+            base.addOperator("sin", 1, 255, [](T a, T b) {return sin(a);}, Associativity::Right);
+            base.addOperator("cos", 1, 255, [](T a, T b) {return cos(a);}, Associativity::Right);
 
             base.addLexeme(Lexeme("(", LexemeType::parOpen));
             base.addLexeme(Lexeme(")", LexemeType::parClose));
@@ -167,17 +176,18 @@ public:
         infix = infix_;
     }
 
-   /* void inputInfix(string& infix)
+    void inputInfix(string& infix)
     {
         infix = infix_;
-    }*/
+    }
 
     void parseToPostfix() {
+        
         if (infix.empty())
             throw logic_error("Trying to parse empty infix");
+
         istringstream iss(infix);
         string token;
-        int t = 0;
 
         while (iss >> token) {
             Lexeme* lex = base.getLexeme(token);
@@ -185,8 +195,25 @@ public:
 
             if (lex == nullptr) {
                 // Если лексема не найдена, добавляем как новую переменную
+
+                if (token.find_first_of('()') != string::npos)
+                    throw runtime_error("Variable name or number fused with parentheses");
+
                 postfix.push_back(base.addVar(token));
-                cout << "New var " << endl;
+
+                //Попытаемся сразу определить если это число
+                try {
+                    double num = stod(token);
+                    if (!isnan(num))
+                    {
+                        setVariable(token, num);
+                        cout << "CAN NUM " << num << endl;
+                    }
+                }
+                catch (exception e){}
+
+
+                //cout << "New var " << endl;
             }
             else {
                 // Вывод информации для отладки
@@ -238,13 +265,10 @@ public:
                 }
             }
 
-            // Вывод текущего состояния для отладки
-            cout << "It was token " << t << endl;
-            cout << "Stack size: " << opStack.get_size() << endl;
-            cout << "Postfix size: " << postfix.size() << endl;
-            if (!postfix.empty())
-                cout << "Last in postfix: " << postfix.back()->getName() << endl;
-            ++t;
+
+            //cout << "It was token " << t << endl;
+            //cout << "Stack size: " << opStack.get_size() << endl;
+            //cout << "Postfix size: " << postfix.size() << endl;
         }
 
         // Перемещаем оставшиеся операторы в постфикс
@@ -254,7 +278,7 @@ public:
             }
             else {
                 postfix.push_back(opStack.get_top());
-                cout << "END Popping " << opStack.get_top()->getName() << " stack size " << endl;
+                //cout << "END Popping " << opStack.get_top()->getName() << " stack size " << endl;
                 opStack.pop();
             }
         }
