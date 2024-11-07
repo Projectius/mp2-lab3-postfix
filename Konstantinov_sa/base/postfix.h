@@ -34,7 +34,7 @@ public:
 	}
 	bool isDefined() { return defined; }
 	virtual ~Lexeme() {};
-	friend ostream& operator<<(ostream& out, Lexeme& lex);
+	friend ostream& operator<<(ostream&, Lexeme&);
 };
 
 ostream& operator<<(ostream& out, Lexeme& lex)
@@ -216,7 +216,7 @@ public:
 			}
 			else {
 				// Вывод информации для отладки
-				cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
+				//cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
 				LexemeType type = lex->getType();
 
 				if (type == LexemeType::var) {
@@ -285,9 +285,7 @@ public:
 
 
 
-
-
-	string GetInfix() { return infix; }
+	string getInfix() { return infix; }
 	string GetPostfix()
 	{
 		if (!postfix.size())

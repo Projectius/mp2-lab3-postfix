@@ -23,6 +23,7 @@ int main()
 	try {
 		TPostfix<double> pf(true); //"e / ( ( a + b ) * c + d )"
 		//pf.inputInfix(" b * a ^ ( a + b )");
+		cout << "Введите выражение, содержащее операторы, переменные, константы и скобки. Все лексемы должны быть раздалены пробелами.\nПример: ( a + b ) ^ 2\nВы сможете задать значения переменных позже" << endl;
 		cout << "Доступные операторы: " << endl;
 		vector<string> ops = pf.getOperatorNames();
 		for (auto& n : ops)
