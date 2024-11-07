@@ -23,11 +23,30 @@ int main()
 	try {
 		TPostfix<double> pf(true); //"e / ( ( a + b ) * c + d )"
 		//pf.inputInfix(" b * a ^ ( a + b )");
-		pf.inputInfix("( sin ( ( a + b ) / c ) + 2 ) ^ b");
+		cout << "Доступные операторы: " << endl;
+		vector<string> ops = pf.getOperatorNames();
+		for (auto& n : ops)
+		{
+			cout << n << endl;
+		}
+		string inf = "a * ( 2 + 1 )";
+		//cin >> inf;
+		pf.inputInfix(inf);
 		pf.parseToPostfix();
 		cout << pf.GetPostfix() << endl;
-		cout << "undef " << pf.checkForUndefinedVars() << endl;
-		pf.setVariables({ {"a", 1.1415},{"b", 2.0} });
+		if (pf.checkForUndefinedVars())
+		{
+			cout << "Определите переменные" << endl;
+			auto ud = pf.getUndefinedVars();
+			for (auto p : ud)
+			{
+				cout << p.first << " = ";
+				double v;
+				cin >> v;
+				*p.second = v;
+			}
+		}
+		//pf.setVariables({ {"a", 1.1415},{"b", 2.0} });
 		//pf.setVariables({ {"a", 2.0},{"b", 3.0} });
 		cout << "CALCULATED = " << pf.Calculate() << endl;
 	}
