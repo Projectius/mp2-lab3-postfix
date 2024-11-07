@@ -52,7 +52,7 @@ public:
 	Variable(string name) : Lexeme(name, LexemeType::var, false) {}
 	void define(T& value_) { value = value_; defined = true; }
 	T& getValue() { return value; }
-	T* getValuePointer() { return &value; }
+	//T* getValuePointer() { return &value; }
 };
 
 //////////////////////////////////////////
@@ -128,9 +128,9 @@ public:
 		return nullptr;
 	}
 
-	void addLexeme(Lexeme& lex) { //Только для вспомогательных лексем без функционала
-		Lexeme* nlex = new Lexeme(lex);
-		map.emplace(lex.getName(), nlex);
+	void addLexeme(string name, LexemeType type, bool defined = false) { //Только для вспомогательных лексем без функционала
+		Lexeme* nlex = new Lexeme(name, type, defined);
+		map.emplace(name, nlex);
 		//cout << "ADDED LEX :" << lex.getName() << ":" << endl;
 	}
 
@@ -165,13 +165,12 @@ public:
 			base.addOperator("-", 2, 0, [](T a, T b) { return a - b; });
 			base.addOperator("*", 2, 1, [](T a, T b) { return a * b; });
 			base.addOperator("/", 2, 1, [](T a, T b) { return a / b; });
-			base.addOperator("^2", 1, 255, [](T a, T b) { return a * a; }, Associativity::Left);
 			base.addOperator("^", 2, 3, [](T a, T b) {return pow(a, b);}, Associativity::Right);
 			base.addOperator("sin", 1, 255, [](T a, T b) {return sin(a);}, Associativity::Right);
 			base.addOperator("cos", 1, 255, [](T a, T b) {return cos(a);}, Associativity::Right);
 
-			base.addLexeme(Lexeme("(", LexemeType::parOpen));
-			base.addLexeme(Lexeme(")", LexemeType::parClose));
+			base.addLexeme("(", LexemeType::parOpen, 1);
+			base.addLexeme(")", LexemeType::parClose, 1);
 		}
 	}
 
@@ -217,7 +216,7 @@ public:
 			}
 			else {
 				// Вывод информации для отладки
-				//cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
+				cout << "Found lexeme: " << lex->getName() << " Type: " << lex->getType() << " Priority: " << lex->getPriority() << endl;
 				LexemeType type = lex->getType();
 
 				if (type == LexemeType::var) {
@@ -285,6 +284,9 @@ public:
 	}
 
 
+
+
+
 	string GetInfix() { return infix; }
 	string GetPostfix()
 	{
@@ -319,14 +321,14 @@ public:
 		}
 	}
 
-	vector<pair<string, T*>> getUndefinedVars() {
-		vector<pair<string, T*>> undefinedVars;
+	vector<string> getUndefinedVars() {
+		vector<string> undefinedVars;
 		for (const auto& lexemePair : base.getAllLexemes()) {
 			Lexeme* lexeme = lexemePair.second;
 			if (lexeme->getType() == LexemeType::var) {
 				Variable<T>* var = static_cast<Variable<T>*>(lexeme);
 				if (!var->isDefined()) {
-					undefinedVars.push_back({ var->getName(), var->getValuePointer()});
+					undefinedVars.push_back(var->getName());
 				}
 			}
 		}

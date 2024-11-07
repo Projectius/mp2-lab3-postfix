@@ -10,7 +10,7 @@ int main()
 	TPostfix<int> pf(true);*/
 	//double res;
 
-	//setlocale(LC_ALL, "Russian");
+	setlocale(LC_ALL, "Russian");
 	////cout << "Введите арифметическое выражение: ";
 	////cin >> expression;
 	////cout << expression << endl;
@@ -29,21 +29,23 @@ int main()
 		{
 			cout << n << endl;
 		}
-		string inf = "a * ( 2 + 1 )";
-		//cin >> inf;
+		cout << "( )"<<endl;
+		string inf; //= "sin ( ( 3 + 0.14 ) / 2 ) * 5 + 1";
+		getline(cin, inf);
+		cout << "Выражение: " <<inf<< endl;
 		pf.inputInfix(inf);
 		pf.parseToPostfix();
-		cout << pf.GetPostfix() << endl;
+		cout << "Постфиксная форма: "<<pf.GetPostfix() << endl;
 		if (pf.checkForUndefinedVars())
 		{
 			cout << "Определите переменные" << endl;
 			auto ud = pf.getUndefinedVars();
 			for (auto p : ud)
 			{
-				cout << p.first << " = ";
+				cout << p << " = ";
 				double v;
 				cin >> v;
-				*p.second = v;
+				pf.setVariable(p, v);
 			}
 		}
 		//pf.setVariables({ {"a", 1.1415},{"b", 2.0} });
